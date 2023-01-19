@@ -8,8 +8,11 @@ Use Python 3.10.0
 
 from django.urls import path
 
-urlpatterns = [
+from notifier_app.views import EmailNotificationListCreateAPIView
 
+urlpatterns = [
+    path(route='email/',
+         view=EmailNotificationListCreateAPIView.as_view(), name='email-list-create'),
 ]
 
 
