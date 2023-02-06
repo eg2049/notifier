@@ -13,6 +13,9 @@ from notifier_app.views import EmailNotificationListCreateAPIView
 urlpatterns = [
     path(route='email/',
          view=EmailNotificationListCreateAPIView.as_view(), name='email-list-create'),
+
+    path(route='email/update/<uuid:pk>/', view=EmailNotificationListCreateAPIView.as_view(),
+         name='email-update'),
 ]
 
 

@@ -16,9 +16,6 @@ class EmailNotificationSerializer(serializers.ModelSerializer):
     """
 
     pk = serializers.UUIDField(read_only=True)
-    notification_status = serializers.CharField(read_only=True)
-    sent_date = serializers.DateTimeField(read_only=True)
-    last_error_date = serializers.DateTimeField(read_only=True)
     skipping = serializers.BooleanField(read_only=True)
     created_date = serializers.DateTimeField(read_only=True)
     modified_date = serializers.DateTimeField(read_only=True)
