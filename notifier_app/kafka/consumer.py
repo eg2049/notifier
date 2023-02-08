@@ -10,7 +10,7 @@ import json
 
 from kafka import KafkaAdminClient, KafkaConsumer
 from kafka.admin import NewTopic
-from kafka.errors import TopicAlreadyExistsError
+from kafka.errors import NoBrokersAvailable, TopicAlreadyExistsError
 
 from config.config import KAFKA_BROKERS
 
@@ -76,7 +76,7 @@ def topic_creator(name: str, num_partitions: int = 1, replication_factor: int = 
         pass
 
 
-def consumer_creator(topic: str, consumer_group_id: str, auto_offset_reset: str = 'earliest') -> KafkaConsumer:
+def consumer_creator(topic: str, consumer_group_id: str, auto_offset_reset: str = 'earliest') -> KafkaConsumer or None:
     """Создание инстанса KafkaConsumer
 
     Args:
@@ -88,27 +88,31 @@ def consumer_creator(topic: str, consumer_group_id: str, auto_offset_reset: str 
         KafkaConsumer: инстанс KafkaConsumer
     """
 
-    consumer = KafkaConsumer(
+    try:
+        consumer = KafkaConsumer(
 
-        # топик из которого нужно читать события
-        topic,
+            # топик из которого нужно читать события
+            topic,
 
-        # адреса брокеров
-        bootstrap_servers=KAFKA_BROKERS,
+            # адреса брокеров
+            bootstrap_servers=KAFKA_BROKERS,
 
-        # с какого события начинать читать
-        auto_offset_reset=auto_offset_reset,
+            # с какого события начинать читать
+            auto_offset_reset=auto_offset_reset,
 
-        # к какой consumer group относится consumer
-        # 1 topic & 2 partition-а и 1 consumer в ОДНОЙ consumer group - consumer будет получать события из ОБОИХ partition-ов
-        # 1 topic & 1 partition и 2 consumer-а в ОДНОЙ consumer group - события будет получать ТОЛЬКО ОДИН consumer
-        # 1 topic & 1 partition и 2 consumer-а в РАЗНЫХ consumer group - события будут получать ОБА consumer-а
-        # 1 topic & 2 partition-а и 2 consumer-а в ОДНОЙ consumer group - КАЖДЫЙ consumer будет получать события ТОЛЬКО ИЗ СВОЕГО partition-а
-        group_id=consumer_group_id,
+            # к какой consumer group относится consumer
+            # 1 topic & 2 partition-а и 1 consumer в ОДНОЙ consumer group - consumer будет получать события из ОБОИХ partition-ов
+            # 1 topic & 1 partition и 2 consumer-а в ОДНОЙ consumer group - события будет получать ТОЛЬКО ОДИН consumer
+            # 1 topic & 1 partition и 2 consumer-а в РАЗНЫХ consumer group - события будут получать ОБА consumer-а
+            # 1 topic & 2 partition-а и 2 consumer-а в ОДНОЙ consumer group - КАЖДЫЙ consumer будет получать события ТОЛЬКО ИЗ СВОЕГО partition-а
+            group_id=consumer_group_id,
 
-        # десериализатор для событий
-        value_deserializer=json_deserializer
-    )
+            # десериализатор для событий
+            value_deserializer=json_deserializer
+        )
+
+    except NoBrokersAvailable:
+        consumer = None
 
     return consumer
 

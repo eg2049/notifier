@@ -7,6 +7,7 @@ Use Python 3.10.0
 """
 
 import smtplib
+import socket
 import time
 
 from datetime import datetime
@@ -71,6 +72,9 @@ def email_sender_daemon() -> None:
                         pass
 
                 except smtplib.SMTPSenderRefused as exc:
+                    pass
+
+                except socket.gaierror as exc:
                     pass
 
         except requests.exceptions.ConnectionError:

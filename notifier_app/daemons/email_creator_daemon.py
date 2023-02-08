@@ -17,8 +17,12 @@ def email_creator_daemon() -> None:
     """Демон создания email-ов из событий kafka
     """
 
-    consumer = consumer_creator(topic='email_notification_topic',
-                                consumer_group_id='email_notification_consumer_group')
+    consumer = None
+
+    while not consumer:
+
+        consumer = consumer_creator(topic='email_notification_topic',
+                                    consumer_group_id='email_notification_consumer_group')
 
     # в msg будет kafka.consumer.fetcher.ConsumerRecord
     for msg in consumer:
