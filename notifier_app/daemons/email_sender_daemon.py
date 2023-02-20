@@ -12,11 +12,9 @@ import time
 
 from datetime import datetime
 
-import requests
-
 from django.core.mail import send_mail
 
-from config.config import LOCAL_HOST_HTTP, SERVICE_PORT
+from notifier_app.models import EmailNotification
 
 
 def email_sender_daemon() -> None:
@@ -25,60 +23,45 @@ def email_sender_daemon() -> None:
 
     while True:
 
-        try:
-            not_sent_emails = requests.get(
-                url=f'{LOCAL_HOST_HTTP}:{SERVICE_PORT}/api/v1/email/'
-            )
+        not_sent_emails = EmailNotification.objects.filter(
+            notification_status='QUEUED', skipping=False)
 
-            for email in not_sent_emails.json():
+        for email in not_sent_emails:
 
-                try:
-                    sent = send_mail(
-                        subject=email.get('subject'),
-                        message=email.get('body'),
-                        from_email=email.get('sender'),
-                        recipient_list=[
-                            email.get('recipient')
-                        ]
-                    )
+            try:
+                sent = send_mail(
+                    subject=email.subject,
+                    message=email.body,
+                    from_email=email.sender,
+                    recipient_list=[
+                        email.recipient
+                    ]
+                )
 
-                    json_body = {
-                        'sender': email.get('sender'),
-                        'recipient': email.get('recipient'),
-                        'subject': email.get('subject'),
-                        'body': email.get('body'),
+            except socket.gaierror as exc:
+                sent = 0
 
-                    }
+            except smtplib.SMTPSenderRefused as exc:
+                sent = 0
 
-                    operation_date = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            except smtplib.SMTPAuthenticationError as exs:
+                sent = 0
 
-                    # проставление email-у статуса и даты отправки, если удалось отправить
-                    if sent:
-                        json_body['notification_status'] = 'SENT'
-                        json_body['sent_date'] = operation_date
+            finally:
 
-                    # проставление email-у даты ошибки, если не удалось отправить
-                    else:
-                        json_body['notification_status'] = email.get(
-                            'notification_status')
-                        json_body['last_error_date'] = operation_date
+                operation_date = datetime.now()
 
-                    response = requests.put(
-                        url=f'{LOCAL_HOST_HTTP}:{SERVICE_PORT}/api/v1/email/update/{email.get("pk")}/',
-                        json=json_body
-                    )
+                # проставление email-у статуса и даты отправки, если удалось отправить
+                if sent:
+                    email.notification_status = 'SENT'
+                    email.sent_date = operation_date
 
-                    if response.status_code != 200:
-                        pass
+                    email.save()
 
-                except smtplib.SMTPSenderRefused as exc:
-                    pass
-
-                except socket.gaierror as exc:
-                    pass
-
-        except requests.exceptions.ConnectionError:
-            pass
+                # проставление email-у даты ошибки, если не удалось отправить
+                else:
+                    email.last_error_date = operation_date
+                    email.save()
 
         time.sleep(5)
 
