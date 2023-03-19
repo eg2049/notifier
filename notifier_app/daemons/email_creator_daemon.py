@@ -6,6 +6,8 @@ Use Python 3.10.0
 Демон создания email-ов из событий kafka
 """
 
+from django.db.utils import ProgrammingError
+
 from notifier_app.kafka.consumer import consumer_creator
 from notifier_app.models import EmailNotification
 
@@ -29,12 +31,16 @@ def email_creator_daemon() -> None:
         # в атрибуте value будет dict, с данными сообщения
         email = msg.value
 
-        EmailNotification.objects.create(
-            sender=EMAIL_SENDER,
-            recipient=email.get('recipient'),
-            subject=email.get('subject'),
-            body=email.get('url')
-        )
+        try:
+            EmailNotification.objects.create(
+                sender=EMAIL_SENDER,
+                recipient=email.get('recipient'),
+                subject=email.get('subject'),
+                body=email.get('url')
+            )
+
+        except ProgrammingError:
+            pass
 
 
 if __name__ == '__main__':
