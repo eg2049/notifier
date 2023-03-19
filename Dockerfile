@@ -29,4 +29,4 @@ RUN python3 -m venv $VENV
 
 RUN . $VENV_ACTIVATE && pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-CMD . $VENV_ACTIVATE && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver $HOST:$PORT --noreload
+CMD . $VENV_ACTIVATE && python3 manage.py migrate && python3 manage.py runserver $HOST:$PORT --noreload
