@@ -7,6 +7,10 @@ pipeline {
 
     environment {
 
+        // GIT_REPOSITORY=''
+        // GIT_BRANCH_NAME='main'
+        // GIT_CREDENTIALS='GIT_CREDENTIALS'
+
         // DOCKER_REGISTRY='https://hub.docker.com'
         // DOCKER_REPOSITORY=''
         // DOCKER_CREDENTIALS='DOCKER_CREDENTIALS'
@@ -16,6 +20,16 @@ pipeline {
     }
 
     stages {
+
+        // stage('Clone') {
+        //     steps {
+        //         echo 'Clone...'
+
+        //         // git url: env.GIT_REPOSITORY
+        //         // git url: env.GIT_REPOSITORY, branch: env.GIT_BRANCH_NAME
+        //         git url: env.GIT_REPOSITORY, branch: env.GIT_BRANCH_NAME, credentialsId: env.GIT_CREDENTIALS
+        //     }
+        // }
 
         stage('Build') {
 
